@@ -33,29 +33,29 @@ Deploying Large Vision-Language Models (VLMs) on centralized cloud infrastructur
 ```mermaid
 flowchart TD
     subgraph DataStage ["1. Real-World Multimodal Preference Mining"]
-        RawData[ChartQA / POPE Real Benchmarks\nReal Scans & Financial Plots] --> PrefMiner[Preference Pair Miner\nChosen vs Hallucinated Responses]
-        PrefMiner --> PrefDataset[(Multimodal DPO Dataset:\nImage Patches, Prompt, y_chosen, y_rejected)]
+        RawData["ChartQA / POPE Real Benchmarks<br/>Real Scans & Financial Plots"] --> PrefMiner["Preference Pair Miner<br/>Chosen vs Hallucinated Responses"]
+        PrefMiner --> PrefDataset[("Multimodal DPO Dataset<br/>Image Patches, Prompt, Chosen, Rejected")]
     end
 
     subgraph AlignmentStage ["2. QLoRA + Multimodal DPO Alignment"]
-        BaseVLM[Base Vision-Language Model\nPatch ViT + Cross-Modal MLP + Causal LLM] --> QLoRAInit[4-bit NF4 Backbone + LoRA r=16, alpha=32]
-        RefVLM[Frozen Reference Policy: pi_ref] --> DPOTrainer
-        QLoRAInit --> DPOTrainer[Multimodal DPO Trainer\nLoss: -E [log sigma (beta * log(pi/ref_w) - beta * log(pi/ref_l))]]
+        BaseVLM["Base Vision-Language Model<br/>Patch ViT + Cross-Modal MLP + Causal LLM"] --> QLoRAInit["4-bit NF4 Backbone + LoRA r=16, alpha=32"]
+        RefVLM["Frozen Reference Policy (pi_ref)"] --> DPOTrainer
+        QLoRAInit --> DPOTrainer["Multimodal DPO Trainer<br/>Closed-Form Loss: L_DPO(pi_theta; pi_ref)"]
         PrefDataset --> DPOTrainer
-        DPOTrainer --> AlignedAdapter[Anti-Hallucination Aligned Weights]
+        DPOTrainer --> AlignedAdapter["Anti-Hallucination Aligned Weights"]
     end
 
     subgraph OptimizationStage ["3. Edge Export, Graph Optimization & INT4 Quantization"]
-        AlignedAdapter --> WeightMerger[Merge LoRA Adapters into Base Layers]
-        WeightMerger --> ONNXExport[ONNX Runtime Graph Fusion & Optimization]
-        ONNXExport --> EdgeQuantizer[Hardware-Aware INT4 Weight Quantization]
-        EdgeQuantizer --> EdgeEngine[(EdgeVLM Compressed Model Artifact)]
+        AlignedAdapter --> WeightMerger["Merge LoRA Adapters into Base Layers"]
+        WeightMerger --> ONNXExport["ONNX Runtime Graph Fusion & Optimization"]
+        ONNXExport --> EdgeQuantizer["Hardware-Aware INT4 Weight Quantization"]
+        EdgeQuantizer --> EdgeEngine[("EdgeVLM Compressed Model Artifact")]
     end
 
     subgraph EvaluationStage ["4. On-Device Benchmark & Hallucination Probe"]
-        EdgeEngine --> POPEBench[POPE Object Hallucination Probe\nAccuracy, Precision, Recall, F1]
-        EdgeEngine --> EdgeProfiler[Edge Hardware Profiler\nTTFT, Tok/s, RAM Footprint]
-        EdgeEngine --> EdgeAPI[FastAPI On-Device Streaming Gateway]
+        EdgeEngine --> POPEBench["POPE Object Hallucination Probe<br/>Accuracy, Precision, Recall, F1"]
+        EdgeEngine --> EdgeProfiler["Edge Hardware Profiler<br/>TTFT, Tok/s, RAM Footprint"]
+        EdgeEngine --> EdgeAPI["FastAPI On-Device Streaming Gateway"]
     end
 ```
 
@@ -200,8 +200,8 @@ EdgeVLM-DPO/
 ├── notebooks/
 │   └── edge_vlm_colab_demo.ipynb  # 1-Click Interactive Google Colab Demo
 ├── docker/
-│   ├── Dockerfile.vlm             # Production container image
-│   └── docker-compose.vlm.yml     # Container stack
+│   ├── Dockerfile                 # Production container image
+│   └── docker-compose.yml         # Container stack
 ├── scripts/
 │   ├── download_multimodal_data.py# Dataset downloader
 │   └── format_dpo_data.py         # DPO preference pair formatter
