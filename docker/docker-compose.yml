@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  edge-vlm-server:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.vlm
+    container_name: edge-vlm-service
+    ports:
+      - "8002:8002"
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/v1/healthz"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
